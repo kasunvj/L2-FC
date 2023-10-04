@@ -1,4 +1,4 @@
-const middleman = require('./middleman1.9');
+const middleman = require('./middleman1.10');
 const chargerData = require("./stamp_custom_modules/mcuMsgHandle5")
 
 const readline = require('readline').createInterface({
@@ -168,8 +168,8 @@ async function controllerPolling(){
 	middleman.writeMCUData('m','',0,dataL.getErrorL2()); // ----- FC
 
 	//FOR DEBUGGING : read L2 and FC data
-	console.log("L2 Data: ",chargerData.L2charger.getData(),chargerData.L2charger.getState())
-	console.log("FC Data: ",chargerData.Fcharger.getData(),chargerData.L2charger.getState())
+	//console.log("L2 Data: ",chargerData.L2charger.getData(),chargerData.L2charger.getState())
+	//console.log("FC Data: ",chargerData.Fcharger.getData(),chargerData.L2charger.getState())
 	
 	//FOR TESTING : Page emmiting
 	if( newLeft !=  middleman.l2Control.page){
@@ -203,8 +203,8 @@ stateL2
 errorL2 
 */
 
-var dataL = new NetworkDataLEFT(1111,1,1,11,110.50,"LKR ",22,111,"AAAA","BBBBB",111,0,'IDLE','');
-var dataR = new NetworkDataRIGHT(2222,2,2,22,222.30,"LKR ",66,222,"Kasun      ","Jayalath   ",222,1,'IDLE','');
+var dataL = new NetworkDataLEFT(1111,1,1,11,110.50,"AUD",22,111,"AAAA","BBBBB",111.00,0,'IDLE','');
+var dataR = new NetworkDataRIGHT(2222,2,2,22,222.30,"AUD",66,222,"User      ","User      ",222.00,1,'IDLE','');
 
 
 middleman.pageEE.emit('L2',0,dataL,dataR)
