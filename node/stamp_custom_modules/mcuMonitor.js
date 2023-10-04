@@ -26,7 +26,7 @@ function monitor(charger,netSt){
 			var genErr = objmcu.L2charger.getGeneralError();
 			
 			console.log()
-			console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"-------------------------- \x1b[0m")
+	console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"[L2 CHARGER]--------------- \x1b[0m")
 			if (state == 0)
 				stateName = 'POWER ON'
 			else if (state == 1)
@@ -127,7 +127,7 @@ function monitor(charger,netSt){
 			var genErr = objmcu.Fcharger.getGeneralError();
 			
 			console.log()
-			console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"-------------------------- \x1b[0m")
+			console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"[FAST CHARGER]------------- \x1b[0m")
 			if (state == 0)
 				stateName = 'POWER ON'
 			else if (state == 1)
