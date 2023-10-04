@@ -159,8 +159,10 @@ async function controllerPolling(){
 	//FOR TESTING : Reading network state
 	fs.readFile('net-state.json', 'utf8', (err, data) => {
 	  if (err) {console.error(err);return;}
-	  dataL.stateL2 = JSON.parse(data).net_state;
-	  dataL.errorL2 = JSON.parse(data).error_state;
+	  dataL.stateL2 = JSON.parse(data).net_state_l2;
+	  dataL.errorL2 = JSON.parse(data).error_state_l2;
+	  dataR.stateFC = JSON.parse(data).net_state_fc;
+	  dataR.errorFC = JSON.parse(data).error_state_fc;
 	});
 	
 	//Polling
@@ -215,7 +217,7 @@ pageChangeUserInput();
 
 let controllerPollingID = setInterval(()=>controllerPolling(),1000);
 
-//let monitorID = setInterval(()=>middleman.mcuMonitor('FC',dataL.getStateL2()),1000);
+let monitorID = setInterval(()=>middleman.mcuMonitor('FC',dataL.getStateL2()),1000);
 
 //blinking any LED
 middleman.led1.blink()
