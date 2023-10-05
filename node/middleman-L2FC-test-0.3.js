@@ -98,6 +98,7 @@ class NetworkDataRIGHT{
 		this.cProfile = cProfile;
 		this.stateFC = stateFC;
 		this.errorFC = errorFC;
+		
     }
 	getData(){
 		return [this.lastChargePt,this.lastTime ,this.lastCost];
@@ -115,6 +116,8 @@ class NetworkDataRIGHT{
 	getunameLast(){return this.unameLast;}
 	getubal(){return this.ubal*100;}
 	getcProfile(){return this.cProfile;}
+	getStateFC(){return this.stateFC;}
+	getErrorFC(){return this.errorFC;}
 };
 
 async function blink(){
@@ -167,7 +170,7 @@ async function controllerPolling(){
 	
 	//Polling
 	middleman.writeMCUData('M',dataL.getStateL2(),0,dataL.getErrorL2()); //---- L2
-	middleman.writeMCUData('m','',0,dataL.getErrorL2()); // ----- FC
+	middleman.writeMCUData('m',dataR.getStateFC(),0,dataR.getErrorFC()); // ----- FC
 
 	//FOR DEBUGGING : read L2 and FC data
 	//console.log("L2 Data: ",chargerData.L2charger.getData(),chargerData.L2charger.getState())
@@ -175,11 +178,16 @@ async function controllerPolling(){
 	
 	//FOR TESTING : Page emmiting
 	if( newLeft !=  middleman.l2Control.page){
+		middleman.gpioEE.emit('led3-off')
+		middleman.gpioEE.emit('led2-on')
 		middleman.pageEE.emit('L2',newLeft,dataL,dataR)
 	}
 	
 	if(newRight !=  middleman.fcControl.page){
+		middleman.gpioEE.emit('led2-off')
+		middleman.gpioEE.emit('led3-on')
 		middleman.pageEE.emit('FC',newRight,dataL,dataR)
+		
 	}
 	
 }
@@ -217,13 +225,28 @@ pageChangeUserInput();
 
 let controllerPollingID = setInterval(()=>controllerPolling(),1000);
 
-let monitorID = setInterval(()=>middleman.mcuMonitor('FC',dataL.getStateL2()),1000);
+let monitorID = setInterval(()=>middleman.mcuMonitor('FC',dataR.getStateFC()),1000);
+//let monitorID = setInterval(()=>middleman.mcuMonitor('L2',dataL.getStateL2()),1000);
 
 //blinking any LED
+
+/*
 middleman.led1.blink()
 middleman.led2.blink()
 middleman.led3.blink()
 middleman.led4.blink()
+*/
+
+/*
+async function gp(){ 
+	await middleman.led1.on()
+	await middleman.led2.on()
+	await middleman.led3.on()
+	await middleman.led4.on()
+}
+
+gp()
+*/
 
 
 

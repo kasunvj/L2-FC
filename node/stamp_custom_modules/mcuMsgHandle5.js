@@ -170,7 +170,7 @@ dataBufIn      43 c4 20 02 00 00 00 00 01 00 00 9e 0a 00 00
                         |        |          --dec-  
 						|        |          * State *
 						|        | 
-						|___________________________
+						|___________________________ 
 						+* Networkside request *
 						'0000000'
 						 |||||||
@@ -182,7 +182,7 @@ dataBufIn      43 c4 20 02 00 00 00 00 01 00 00 9e 0a 00 00
 							  +[5]--- Shedule Charge
 							   +[6]-- Stop Charge
 							    +[7]- Start (LSB)
-						____________________________
+						____________________________ 
                                  |
 								 |_____________________________________________________
 								 + * Power side error *   
@@ -219,7 +219,7 @@ function mcuMsgDecode(buf){
 			
 			
 			if(conv.hexToDec(crc16('MODBUS',dataBufIn).toString(16)) == checksmIn){
-				console.log("CRC PASSED");
+				//console.log("CRC PASSED");
 				
 				//Extracting L2 State, Activity State, networkside request, Powerside error,General error
 				const decimalVal = parseInt(conv.hexToDec(dataBufIn.slice(1,2).toString('hex')))
@@ -331,7 +331,7 @@ function mcuMsgEncode(controller,state,stopC,errorC,port,parser){
 	}
 	
 	switch(errorC){
-		/*1 byte*/
+		/*1 byte */
 		case 'GF':errorCommand  = Buffer.from([0x01]);break;
 		case 'OCF':errorCommand = Buffer.from([0x02]);break;
 		case 'GFI':errorCommand = Buffer.from([0x03]);break;
@@ -348,6 +348,7 @@ function mcuMsgEncode(controller,state,stopC,errorC,port,parser){
 	checksmOut = crc16('MODBUS',Buffer.concat([selectContBufOut,dataBufOut],15));
 	totalBufOut= Buffer.concat([Buffer.from([0x23]),selectContBufOut,dataBufOut, Buffer.from(checksmOut.toString(16).padStart(4,'0'),'hex').swap16(),Buffer.from([0x2a,0x0a])],20);
 	
+	
 	if(port.path == "/dev/ttyS1"){
 		console.log('\x1b[35m')
 		console.log('              #  M  ST SP *  *  *  PE  *  *  *  *  *  *  *  *  CR C- *  n --> FC')
@@ -360,7 +361,6 @@ function mcuMsgEncode(controller,state,stopC,errorC,port,parser){
 		console.log("Out: ", totalBufOut,port.path,port.baudRate);
 		console.log('\x1b[0m')
 	}
-
 	
 	try{
 		port.write(totalBufOut, function(err) {

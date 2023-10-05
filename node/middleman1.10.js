@@ -387,41 +387,75 @@ class gpio{
 		this.dir = dir;
 		this.val = val;
 		this.intervalID = 0;
-		this.create(this.pin,this.dir,this.val)
+		this.create();
 	}
 	
-	create(myPin,myDir,myVal){
-		this.pin = myPin;
-		this.dir = myDir;
-		this.val = myVal;
-		
+	create(){
 		return new Promise((resolve) => {
-			exec('echo '+myPin.toString()+' > /sys/class/gpio/export', (error,stdout,stderr) => {
-				//console.log("1");	
-				exec('echo '+myDir.toString()+' > /sys/class/gpio/gpio'+myPin+'/direction', (error,stdout,stderr) => {
-					//console.log("2");
-					if(myVal == 1){
-						this.on();
+			exec('echo '+(this.pin).toString()+' > /sys/class/gpio/export', (error,stdout,stderr) => {
+				if(error){
+					console.log(error);
+					return;
+				}
+				else if(stderr){
+					console.log(stderr);
+					return;
+				}
+				else{
+					resolve();
+				}
+				});
+				
+			}).then(() => {
+				exec('echo '+this.dir+' > /sys/class/gpio/gpio'+(this.pin).toString()+'/direction', (error,stdout,stderr) => {
+					
+					if(error){
+						return;
 					}
 					else{
-						this.off();
+						console.log("setting gpio "+this.pin.toString()+" as "+this.dir);
 					}
-					console.log("setting gpio "+this.pin.toString()+" as "+this.dir);
-					resolve();
+					
+					
 					});
-				});
 			});
 	}
 	
 	on(){
-		exec('echo 1 > /sys/class/gpio/gpio'+this.pin.toString()+'/value', (error,stdout,stderr) => {
-			//console.log("on :",this.pin);
+		return new Promise((resolve) => {
+			exec('echo 1 > /sys/class/gpio/gpio'+this.pin.toString()+'/value', (error,stdout,stderr) => {
+				if(error){
+					console.log(error);
+					return;
+				}
+				else if(stderr){
+					console.log(stderr);
+					return;
+				}
+				else{
+					console.log("On : ",this.pin);
+					resolve();
+				}
+			});
 		});
 	}
 	
 	off(){
-		exec('echo 0 > /sys/class/gpio/gpio'+this.pin.toString()+'/value', (error,stdout,stderr) => {
-			//console.log("off :",this.pin);
+		return new Promise((resolve) => {
+			exec('echo 0 > /sys/class/gpio/gpio'+this.pin.toString()+'/value', (error,stdout,stderr) => {
+				if(error){
+					console.log(error);
+					return;
+				}
+				else if(stderr){
+					console.log(stderr);
+					return;
+				}
+				else{
+					console.log("Off : ",this.pin);
+					resolve();
+				}
+			});
 		});
 	}
 	
@@ -538,6 +572,10 @@ Left (L2)
 4 = Charginh
 5 = Full
 
+7 = insufficient Bal
+8 = Invalid card 
+9 = error
+
 Right (GBT)
 0 = IDELING
 1 = AUTENDICATING
@@ -546,6 +584,10 @@ Right (GBT)
 4 = PLUG-IN
 5 = Charginh
 6 = Full
+
+7 = insufficient Bal
+8 = Invalid card 
+9 = error
 -------------------------
 */
 
@@ -1611,28 +1653,68 @@ var liveDMGRight = new LiveDataRIGHT(0,0,55,0,55.50,15.50,55,55,55,55,1);
 
 
 /*GPIO*/
-var btn1 = new gpio(4,'in',1);
-var btn2 = new gpio(5,'in',1);
-var btn3 = new gpio(8,'in',1);
-var btn4 = new gpio(86,'in',1);
-var led1 = new gpio(9,'out',0);
-var led2 = new gpio(11,'out',0);
-var led3 = new gpio(48,'out',0);
-var led4 = new gpio(85,'out',0);
+let btn1, btn2, btn3, btn4, led1, led2, led3, led4
+
+let gpioPromise = new Promise(() => {
+	
+})
+
+async function gpioCreate(){
+	return new Promise(async (resolve) =>{
+		btn1 = await new gpio(4,'in',1);
+		btn2 = await new gpio(5,'in',1);
+		btn3 = await new gpio(8,'in',1);
+		btn4 = await new gpio(86,'in',1);
+		led1 = await new gpio(9,'out',0);
+		led2 = await new gpio(11,'out',0);
+		led3 = await new gpio(48,'out',0);
+		led4 = await new gpio(85,'out',0);
+		await delay(500)
+		resolve()
+	}).then(() => {
+		gpioEE.emit('gpio_ready');
+	})
+}
+
 
 /*DGM Page Initialize*/
 var l2Control = new L2Ops(0)
 var fcControl = new FCOps(0)
 let dmgLeftID;
 let dmgRightID;
+let gpioID
 
+gpioCreate()
 
 //checking gpio using emmiter
-gpioEE.on('btn1',() => {console.log("\x1b[33m Button 1 : Pressed \x1b[0m")})
+gpioEE.on('btn1',() => {
+	console.log("\x1b[33m Button 1 : Pressed \x1b[0m")})
 gpioEE.on('btn2',() => {console.log("\x1b[33m Button 2 : Pressed \x1b[0m")})
 gpioEE.on('btn3',() => {console.log("\x1b[33m Button 3 : Pressed \x1b[0m")})
 gpioEE.on('btn4',() => {console.log("\x1b[33m Button 4 : Pressed \x1b[0m")})
 gpioEE.on('tap',(string) => {console.log("\x1b[33m Tap Card : "+string+"\x1b[0m")})
+gpioEE.on('gpio_ready',() => {
+	console.log("GPIO setting complted");
+	gpioID = setInterval(()=>checkGPIO(btn1,btn2,btn3,btn4),100);
+})
+gpioEE.on('led1_on',async() =>{await led1.on();})
+gpioEE.on('led2-on',async() =>{await led2.on();})
+gpioEE.on('led3-on',async() =>{await led3.on();})
+gpioEE.on('led4-on',async() =>{await led4.on();})
+
+gpioEE.on('led1-off',async() =>{await led1.off();})
+gpioEE.on('led2-off',async() =>{await led2.off();})
+gpioEE.on('led3-off',async() =>{await led3.off();})
+gpioEE.on('led4-off',async() =>{await led4.off();})
+
+gpioEE.on('all-off',() =>{
+	led1.off();
+	led2.off();
+	led3.off();
+	led4.off();})
+
+
+//-----------------------------
 
 pageEE.on('L2', async function(newLeft,dL,dR) {
 	l2Control.page= newLeft;
@@ -1683,8 +1765,7 @@ pageEE.on('FC', async function(newRight,dL,dR) {
 // Async running functions
 //========================================
 
-let gpioID
-gpioID = setInterval(()=>checkGPIO(btn1,btn2,btn3,btn4),100);
+
 
 /*Updating network status*/
 let networkcheckID = setInterval(()=>updateNet(),5000);

@@ -1,5 +1,5 @@
-var objmcu = require("./mcuMsgHandle5");
-var objnet = require("./networkCheck");
+const objmcu = require("./mcuMsgHandle5");
+const objnet = require("./networkCheck");
 var ping = 0;
  
 
@@ -15,6 +15,8 @@ function monitor(charger,netSt){
 	let hours = date_ob.getHours();
 	let minutes = date_ob.getMinutes();
 	let seconds = date_ob.getSeconds();
+	let dataL2 = objmcu.L2charger.getData();
+	let dataFC = objmcu.Fcharger.getData();
 	
 	switch (charger){
 		case 'L2':
@@ -50,7 +52,7 @@ function monitor(charger,netSt){
 			else
 				stateName = 'State Error'
 			
-			//console.log(netSt) 
+			
 			
 			if(netSt == 'IDLE')
 				console.log('Network State   : \x1b[94m[*] IDLE\x1b[0m [ ] PRE_START [ ] START [ ] STOP  \x1b[0m')
@@ -64,6 +66,9 @@ function monitor(charger,netSt){
 				console.log('Network State   : [ ] IDLE [ ] PRE_START [ ] START [ ] STOP  \x1b[0m')
 			
 			console.log("Charger State   : "+state+'\x1b[94m '+stateName+'\x1b[0m')
+			console.log()
+			console.log("\x1b[33mVoltage(V): "+dataL2[0]+"  Current(A): "+dataL2[1]+"  Power(kW): "+dataL2[2]+"  Energy(kWh): "+dataL2[3]+"\x1b[0m")
+			console.log()
 			
 			console.log("\x1b[32mL2 Activity state : \x1b[0m")
 			console.log("  Connector State:",activityState[0])
@@ -151,7 +156,7 @@ function monitor(charger,netSt){
 			else
 				stateName = 'State Error'
 			
-			//console.log(netSt)
+			
 			
 			if(netSt == 'IDLE')
 				console.log('Network State   : \x1b[94m[*] IDLE\x1b[0m [ ] PRE_START [ ] START [ ] STOP  \x1b[0m')
@@ -165,6 +170,9 @@ function monitor(charger,netSt){
 				console.log('Network State   : [ ] IDLE [ ] PRE_START [ ] START [ ] STOP  \x1b[0m')
 			
 			console.log("Charger State   : "+state+'\x1b[94m '+stateName+'\x1b[0m')
+			console.log()
+			console.log("\x1b[33mVoltage(V): "+dataFC[0]+"  Current(A): "+dataFC[1]+"  Power(kW): "+dataFC[2]+"  Energy(kWh): "+dataFC[3]+"\x1b[0m")
+			console.log()
 			
 			console.log("\x1b[32mL2 Activity state : \x1b[0m")
 			console.log("  Connector State:",activityState[0])
