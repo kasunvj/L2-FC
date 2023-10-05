@@ -192,7 +192,7 @@ dataBufIn      43 c4 20 02 00 00 00 00 01 00 00 9e 0a 00 00
 								  +[1]------- trip_OC_L1-------- Over Current Fault
 								   +[2]------ error_GFI_test---- GFI Test Failed
 								    +[3]----- error_SR_C-------- Stuck Contactor Error
-									 +[4]---- error_SR_N-------- Not used
+									 +[4]---- error_SR_N-------- Emergency
 									  +[5]--- error_SR_L1------- Not used
 									   +[6]-- error_UV_L1------- Under Voltage Error
 									    +[7]- error_OV_L1------- Over Voltage Error
@@ -227,7 +227,7 @@ function mcuMsgDecode(buf){
 				const activityState = dec2bin(decimalVal).slice(0,3)
 				const netRequest = dec2bin(parseInt(conv.hexToDec(dataBufIn.slice(3,4).toString('hex'))))
 				const powerError = dec2bin(parseInt(conv.hexToDec(dataBufIn.slice(6,7).toString('hex'))))
-				const generalError = '01';
+				const generalError = '00';
 				
 				switch(charger){
 					case 'C': //L2 Charger

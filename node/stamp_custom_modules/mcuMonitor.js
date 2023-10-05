@@ -101,7 +101,7 @@ function monitor(charger,netSt){
 			if(err[3]=='1')
 				console.log("\x1b[91m  Stuck Contactor Error\x1b[0m")
 			if(err[4]=='1')
-				console.log("\x1b[91m  Not used\x1b[0m")
+				console.log("\x1b[91m  Emergency Pressed\x1b[0m")
 			if(err[5]=='1')
 				console.log("\x1b[91m  Not used\x1b[0m")
 			if(err[6]=='1')
@@ -130,6 +130,7 @@ function monitor(charger,netSt){
 			var netRequest = objmcu.Fcharger.getNetRequet();
 			var err = objmcu.Fcharger.getpowerError();
 			var genErr = objmcu.Fcharger.getGeneralError();
+			console.log(err)
 			
 			console.log()
 			console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"[FAST CHARGER]------------- \x1b[0m")
@@ -205,7 +206,7 @@ function monitor(charger,netSt){
 			if(err[3]=='1')
 				console.log("\x1b[91m  Stuck Contactor Error\x1b[0m")
 			if(err[4]=='1')
-				console.log("\x1b[91m  Not used\x1b[0m")
+				console.log("\x1b[91m  Emergency Pressed\x1b[0m")
 			if(err[5]=='1')
 				console.log("\x1b[91m  Not used\x1b[0m")
 			if(err[6]=='1')
