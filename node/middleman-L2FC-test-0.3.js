@@ -170,7 +170,27 @@ async function controllerPolling(){
 	
 	//Polling
 	middleman.writeMCUData('M',dataL.getStateL2(),0,dataL.getErrorL2()); //---- L2
-	middleman.writeMCUData('m',dataR.getStateFC(),0,dataR.getErrorFC()); // ----- FC
+	//middleman.writeMCUData('m',dataR.getStateFC(),0,dataR.getErrorFC()); // ----- FC
+	
+	switch(chargerData.Fcharger.getState()){
+		case 1://A1 << MCU
+			console.log("Ideling...............................")
+			middleman.writeMCUData('m','IDLE',0,dataR.getErrorFC())
+		case 3://B1 << MCU
+			console.log("Waitingg...............................")
+			middleman.writeMCUData('m','PRE_START',0,dataR.getErrorFC())
+		case 6://C2 << MCU
+			console.log("Going too charegeee....................")
+			middleman.writeMCUData('m','START',0,dataR.getErrorFC())
+		case 5://C1 << MCU
+			console.log("lets stooppppppppppp...................")
+			middleman.writeMCUData('m','STOP',0,dataR.getErrorFC())
+		
+		default:
+			console.log("Ideling...............................")
+			middleman.writeMCUData('m','IDLE',0,dataR.getErrorFC())
+			
+	}
 
 	//FOR DEBUGGING : read L2 and FC data
 	//console.log("L2 Data: ",chargerData.L2charger.getData(),chargerData.L2charger.getState())

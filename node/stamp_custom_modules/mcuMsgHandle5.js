@@ -71,7 +71,7 @@ class StateMcu{
 }
 
 class L2Charger{
-	constructor(volt,curr,powr,kwh,t1,t2,t3,state,activityState,netRequest,powerError,generalError){
+	constructor(volt,curr,powr,kwh,t1,t2,t3,state,activityState,netRequest,powerError,generalError,soc){
 		this.volt = volt;
 		this.curr = curr;
 		this.powr = powr;
@@ -84,6 +84,7 @@ class L2Charger{
 		this.netRequest = netRequest
 		this.powerError = powerError
 		this.generalError = generalError
+		this.soc = soc
 	}
 	
 	getData(){
@@ -105,10 +106,13 @@ class L2Charger{
 	getGeneralError(){
 		return this.generalError
 	}
+	getSoc(){
+		return this.soc
+	}
 }
 
 class FCharger{
-	constructor(volt,curr,powr,kwh,t1,t2,t3,state,activityState,netRequest,powerError,generalError){
+	constructor(volt,curr,powr,kwh,t1,t2,t3,state,activityState,netRequest,powerError,generalError,soc){
 		this.volt = volt;
 		this.curr = curr;
 		this.powr = powr;
@@ -121,6 +125,7 @@ class FCharger{
 		this.netRequest = netRequest
 		this.powerError = powerError
 		this.generalError = generalError
+		this.soc = soc
 	}
 	
 	getData(){
@@ -141,6 +146,9 @@ class FCharger{
 	getGeneralError(){
 		return this.generalError
 	}
+	getSoc(){
+		return this.soc
+	}
 }
 
 
@@ -148,8 +156,8 @@ var mcuDataM0 = new DataMcuM0(0.0,0.0,0.0);
 var mcuDataM1 = new DataMcuM1(0.0,0,0,0);
 var mcuStateL2 = new StateMcu(0,'000','00000000','00000000','00');
 
-var L2charger= new L2Charger(0,0,0,0,0,0,0,0,'000','00000000','00000000','100')
-var Fcharger = new FCharger(0,0,0,0,0,0,0,0,'000','00000000','00000000','100')
+var L2charger= new L2Charger(0,0,0,0,0,0,0,0,'000','00000000','00000000','100',0)
+var Fcharger = new FCharger(0,0,0,0,0,0,0,0,'000','00000000','00000000','100',0)
 
 /*
 This fucntion updates class DataMcuM0 and DataMcuM1

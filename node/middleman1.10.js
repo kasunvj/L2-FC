@@ -267,14 +267,14 @@ function listenTapCard(){
 function readMCUL2(){
 	console.log('opened L2');
 	parserFixLenL2.on('data', function(data){
-		//console.log('\x1b[96m')
+		console.log('\x1b[96m')
 		if(obj.mcuMsgDecode(data) == 0){			
 			L2dataEmitter.emit('data',obj.mcuDataM0,obj.mcuDataM1,obj.mcuStateL2)
 			//nothing to be  done, calling mcuMsgDecode also save latest values
 			//and update values that uses for DMG Display
 			//updateDisplayDMG(liveDMGLeft,liveDMGLeft);
 		}
-		//console.log('\x1b[0m')
+		console.log('\x1b[0m')
 		
 		
 	});
@@ -283,14 +283,14 @@ function readMCUL2(){
 function readMCUFC(){
 	console.log('opened FC');
 	parserFixLenFC.on('data', function(data){
-		//console.log('\x1b[95m')
+		console.log('\x1b[95m')
 		if(obj.mcuMsgDecode(data) == 0){ 
 			//L2dataEmitter.emit('data',obj.mcuDataM0,obj.mcuDataM1,obj.mcuStateL2)
 			//nothing to be  done, calling mcuMsgDecode also save latest values
 			//and update values that uses for DMG Display
 			//updateDisplayDMG(liveDMGLeft,liveDMGLeft);
 		}
-		//console.log('\x1b[0m')
+		console.log('\x1b[0m')
 		
 	});
 }
