@@ -1550,18 +1550,21 @@ function pageUpdateDMG(newSide,newPage,netDataL,netDataR){
 		mcuData1[3] : t3
 	*/
 	isAllSent = 0;
-	var liveLeftDataMid0 = readMCUData('msgId0');
-	var liveLeftDataMid1 = readMCUData('msgId1');
+	//var liveLeftDataMid0 = readMCUData('msgId0');
+	//var liveLeftDataMid1 = readMCUData('msgId1');
 	
 	
-	liveDMGLeft.voltLive = parseInt(liveLeftDataMid0[0]);
-	liveDMGLeft.currLive = parseInt(liveLeftDataMid0[1]);
-	liveDMGLeft.wattLive = parseInt(netDataL.getchargerPower());
+	liveDMGLeft.voltLive = parseInt(obj.L2charger.volt);
+	liveDMGLeft.currLive = parseInt(obj.L2charger.curr);
+	liveDMGLeft.wattLive = parseInt(obj.L2charger.powr);
+	liveDMGLeft.kwhLive = parseInt(obj.L2charger.kwh);
+	liveDMGLeft.battPLive = parseInt(obj.L2charger.soc);
 	
-	/*test*/
-	liveDMGRight.voltLive  = parseInt(liveLeftDataMid1[1]);
-	liveDMGRight.currLive = parseInt(liveLeftDataMid0[1]);
-	liveDMGRight.wattLive = parseInt(netDataR.getchargerPower());
+	liveDMGRight.voltLive  = parseInt(obj.Fcharger.volt);
+	liveDMGRight.currLive = parseInt(obj.Fcharger.curr);
+	liveDMGRight.wattLive = parseInt(obj.Fcharger.powr);
+	liveDMGRight.kwhLive = parseInt(obj.Fcharger.kwh);
+	liveDMGRight.battPLive = parseInt(obj.Fcharger.soc);
 	
 	return new Promise((resolve,reject) => {
 		if(newSide == 'L'){
@@ -1841,12 +1844,13 @@ let testID = setInterval(()=>{
 	else{
 		liveDMGLeft.battPLive = 0;
 	}
-	
+	/*
 	if (liveDMGRight.getbattPLive() <= 95){
 		liveDMGRight.battPLive = liveDMGRight.getbattPLive() +5;}
 	else{
 		liveDMGRight.battPLive = 0;
 	}
+	*/
 },500);
 
 module.exports = {readMCUData,writeMCUData,pageUpdateDMG,newTap,gpio,mcuMonitor,l2Control,fcControl,pageEE,gpioEE,led1,led2,led3,led4}
