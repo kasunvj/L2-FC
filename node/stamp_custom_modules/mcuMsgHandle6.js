@@ -88,7 +88,14 @@ class L2Charger{
 	}
 	
 	getData(){
-		return [this.volt,this.curr,this.powr,this.kwh,this.t1,this.t2,this.t3];
+		return [this.volt, 
+				this.curr, 
+				this.powr, 
+				this.kwh,
+				this.t1,
+				this.t2,
+				this.t3,
+				this.soc];
 	}
 		
 	getState(){
@@ -324,6 +331,9 @@ function mcuMsgDecode(cobj,packet){
 										Fcharger.t1 = conv.hexToDec(totalBufIn[12].toString(16));
 										Fcharger.t2 = conv.hexToDec(totalBufIn[13].toString(16));
 										Fcharger.t3 = conv.hexToDec(totalBufIn[14].toString(16));
+										break;
+									case '2':
+										Fcharger.soc = conv.hexToDec(totalBufIn[13].toString(16));
 										break;
 								}
 								break;

@@ -67,7 +67,7 @@ function monitor(charger,netSt){
 			
 			console.log("Charger State   : "+state+'\x1b[94m '+stateName+'\x1b[0m')
 			console.log()
-			console.log("\x1b[33mVoltage(V): "+dataL2[0]+"  Current(A): "+dataL2[1]+"  Power(kW): "+dataL2[2]+"  Energy(kWh): "+dataL2[3]+"\x1b[0m")
+			console.log("\x1b[33mVoltage(V): "+dataL2[0]+"  Current(A): "+dataL2[1]+"  Power(kW): "+dataL2[2]+"  Energy(kWh): "+dataL2[3]+"  Batt(%): "+dataL2[7]+"\x1b[0m")
 			console.log()
 			
 			console.log("\x1b[32mL2 Activity state : \x1b[0m")
@@ -134,7 +134,7 @@ function monitor(charger,netSt){
 			
 			
 			
-			console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"[FAST CHARGERsdcdscdsc]------------- \x1b[0m")
+			console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"[FAST CHARGER]------------- \x1b[0m")
 			if (state == 0)
 				stateName = 'POWER ON'
 			else if (state == 1)
@@ -173,10 +173,10 @@ function monitor(charger,netSt){
 			
 			console.log("Charger State   : "+state+'\x1b[94m '+stateName+'\x1b[0m')
 			console.log()
-			console.log("\x1b[33mVoltage(V): "+dataFC[0]+"  Current(A): "+dataFC[1]+"  Power(kW): "+dataFC[2]+"  Energy(kWh): "+dataFC[3]+"\x1b[0m")
+			console.log("\x1b[33mVoltage(V): "+dataFC[0]+"  Current(A): "+dataFC[1]+"  Power(kW): "+dataFC[2]+"  Energy(kWh): "+dataFC[3]+"  Batt(%): "+dataFC[7]+"\x1b[0m")
 			console.log()
 			
-			console.log("\x1b[32mL2 Activity state : \x1b[0m")
+			console.log("\x1b[32mFC Activity state : \x1b[0m")
 			console.log("  Connector State:",activityState[0])
 			console.log("  CpPWM active   :",activityState[1])
 			console.log("  Charging active:",activityState[2])

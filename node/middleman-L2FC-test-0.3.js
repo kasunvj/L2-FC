@@ -157,6 +157,8 @@ async function pageChangeUserInput(){
 		}
 }
 
+var charging = 0;
+
 async function controllerPolling(){
 	
 	//FOR TESTING : Reading network state
@@ -183,10 +185,16 @@ async function controllerPolling(){
 			break;
 		case 6://C2 << MCU
 			console.log("Going too charegeee....................")
-			middleman.writeMCUData('m','START',0,dataR.getErrorFC())
+			if(charging ==0){
+				middleman.writeMCUData('m','START',0,dataR.getErrorFC())
+				charging = 1
+			}else{
+				middleman.writeMCUData('m',dataR.getStateFC(),0,dataR.getErrorFC())
+			}
 			break;
 		case 5://C1 << MCU
 			console.log("lets stooppppppppppp...................")
+			charging = 0
 			middleman.writeMCUData('m','STOP',0,dataR.getErrorFC())
 			break;
 		
@@ -260,8 +268,8 @@ pageChangeUserInput();
 let controllerPollingID = setInterval(()=>controllerPolling(),1000);
 
 
-//let monitorID = setInterval(()=>middleman.mcuMonitor('L2',dataL.getStateL2()),1000);
-let monitorID = setInterval(()=>middleman.mcuMonitor('FC',dataR.getStateFC()),1000);
+let monitorID = setInterval(()=>middleman.mcuMonitor('L2',dataL.getStateL2()),1000);
+//let monitorID = setInterval(()=>middleman.mcuMonitor('FC',dataR.getStateFC()),1000);
 
 //blinking any LED
 
