@@ -1,5 +1,5 @@
 const middleman = require('./middleman1.10');
-const chargerData = require("./stamp_custom_modules/mcuMsgHandle5")
+const chargerData = require("./stamp_custom_modules/mcuMsgHandle6")
 
 const readline = require('readline').createInterface({
   input: process.stdin,
@@ -176,25 +176,39 @@ async function controllerPolling(){
 		case 1://A1 << MCU
 			console.log("Ideling...............................")
 			middleman.writeMCUData('m','IDLE',0,dataR.getErrorFC())
+			break;
 		case 3://B1 << MCU
 			console.log("Waitingg...............................")
 			middleman.writeMCUData('m','PRE_START',0,dataR.getErrorFC())
+			break;
 		case 6://C2 << MCU
 			console.log("Going too charegeee....................")
 			middleman.writeMCUData('m','START',0,dataR.getErrorFC())
+			break;
 		case 5://C1 << MCU
 			console.log("lets stooppppppppppp...................")
 			middleman.writeMCUData('m','STOP',0,dataR.getErrorFC())
+			break;
 		
 		default:
 			console.log("Ideling...............................")
 			middleman.writeMCUData('m','IDLE',0,dataR.getErrorFC())
+			break;
 			
 	}
 
 	//FOR DEBUGGING : read L2 and FC data
 	//console.log("L2 Data: ",chargerData.L2charger.getData(),chargerData.L2charger.getState())
 	//console.log("FC Data: ",chargerData.Fcharger.getData(),chargerData.L2charger.getState())
+	
+	//Come to IDLE page if emergency is pressed. 
+	
+	if(middleman.commonSig.emg == 1){
+		
+		newLeft = 0
+		newRight= 0
+		
+	}
 	
 	//FOR TESTING : Page emmiting
 	if( newLeft !=  middleman.l2Control.page){
@@ -207,7 +221,6 @@ async function controllerPolling(){
 		middleman.gpioEE.emit('led2-off')
 		middleman.gpioEE.emit('led3-on')
 		middleman.pageEE.emit('FC',newRight,dataL,dataR)
-		
 	}
 	
 	
@@ -246,8 +259,9 @@ pageChangeUserInput();
 
 let controllerPollingID = setInterval(()=>controllerPolling(),1000);
 
-let monitorID = setInterval(()=>middleman.mcuMonitor('FC',dataR.getStateFC()),1000);
+
 //let monitorID = setInterval(()=>middleman.mcuMonitor('L2',dataL.getStateL2()),1000);
+let monitorID = setInterval(()=>middleman.mcuMonitor('FC',dataR.getStateFC()),1000);
 
 //blinking any LED
 
@@ -258,16 +272,6 @@ middleman.led3.blink()
 middleman.led4.blink()
 */
 
-/*
-async function gp(){ 
-	await middleman.led1.on()
-	await middleman.led2.on()
-	await middleman.led3.on()
-	await middleman.led4.on()
-}
-
-gp()
-*/
 
 
 

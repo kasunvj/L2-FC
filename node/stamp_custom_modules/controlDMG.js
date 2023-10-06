@@ -47,7 +47,7 @@ function dmgIcon(data,port){
 
 
 function sendDMGMessage(sendBuf,port){
-	//console.log(sendBuf,port.path,port.baudRate);
+	console.log(sendBuf,port.path,port.baudRate);
 	
 	try{
 		port.write(sendBuf, function(err) {

@@ -224,94 +224,123 @@ var countPacketFC = new Bufloading(0, 0, 0, '\x1b[95m')
 var totalBufIn = Buffer.alloc(20);
 
 function mcuMsgDecode(cobj,packet){
-	totalBufIn = packet
+	const hash = Buffer.from([0x23])
+	
+	if (Buffer.compare(hash,packet) == 0){
+		cobj.startLoading = 1;	
+	}
+	
+	if(cobj.startLoading == 1){
+		
+		if(cobj.count < 19){
+			totalBufIn.fill(packet,cobj.count)
+			//console.log("State inside packet Not ready > ",Fcharger.state)
+			cobj.count = cobj.count +1
+			cobj.packetReady = 0
+		}
+		else{
+			totalBufIn.fill(packet,cobj.count)
+			//console.log("State inside packet ready > ",Fcharger.state)
+			cobj.startLoading = 0;
+			cobj.count = 0
+			cobj.packetReady = 1
+		}
+	}
+	
+	
 	
 	try{
-		
-		if(totalBufIn.slice(0,1).toString('hex') == '23'){
+		switch(cobj.packetReady){
 			
-			console.log(cobj.color)
-			console.log('             #  C  ST *  NR *  *  PE *  MG V1 -- V2 -- V3 -- CR C- *  n')
-			console.log('In: ',totalBufIn);
-			
-			
-			const msgIdIn = conv.hexToDec(totalBufIn.slice(9,10).toString('hex'));
-			const charger = totalBufIn.slice(1,2).toString('utf8')
-			
-			mcuStateL2.generalError = '0'+mcuStateL2.getGeneralError()[1];
-			
-			checksmIn = conv.hexToDec(totalBufIn.slice(16,18).swap16().toString('hex'));
-			dataBufIn = totalBufIn.slice(1,16);
-			
-			
-			
-			if(conv.hexToDec(crc16('MODBUS',dataBufIn).toString(16)) == checksmIn){
-				console.log("CRC PASSED");
-				console.log('\x1b[0m')
-				//Extracting L2 State, Activity State, networkside request, Powerside error,General error
-				const decimalVal = parseInt(conv.hexToDec(dataBufIn.slice(1,2).toString('hex')))
-				const state = bin2dec(dec2bin(decimalVal).slice(3,8));
-				const activityState = dec2bin(decimalVal).slice(0,3)
-				const netRequest = dec2bin(parseInt(conv.hexToDec(dataBufIn.slice(3,4).toString('hex'))))
-				const powerError = dec2bin(parseInt(conv.hexToDec(dataBufIn.slice(6,7).toString('hex'))))
-				const generalError = '00';
-				
-				switch(charger){
-					case 'C': //L2 Charger
-						L2charger.state = state
-						L2charger.activityState = activityState
-						L2charger.netRequest = netRequest
-						L2charger.powerError = powerError
-						L2charger.generalError = generalError
+			case 1:
+				if(totalBufIn.slice(0,1).toString('hex') == '23'){
+					
+					console.log(cobj.color)
+					console.log('             #  C  ST *  NR *  *  PE *  MG V1 -- V2 -- V3 -- CR C- *  n')
+					console.log('In: ',totalBufIn);
+					
+					
+					const msgIdIn = conv.hexToDec(totalBufIn.slice(9,10).toString('hex'));
+					const charger = totalBufIn.slice(1,2).toString('utf8')
+					
+					mcuStateL2.generalError = '0'+mcuStateL2.getGeneralError()[1];
+					
+					checksmIn = conv.hexToDec(totalBufIn.slice(16,18).swap16().toString('hex'));
+					dataBufIn = totalBufIn.slice(1,16);
+					
+					
+					
+					if(conv.hexToDec(crc16('MODBUS',dataBufIn).toString(16)) == checksmIn){
+						console.log("CRC PASSED");
+						console.log('\x1b[0m')
+						//Extracting L2 State, Activity State, networkside request, Powerside error,General error
+						const decimalVal = parseInt(conv.hexToDec(dataBufIn.slice(1,2).toString('hex')))
+						const state = bin2dec(dec2bin(decimalVal).slice(3,8));
+						const activityState = dec2bin(decimalVal).slice(0,3)
+						const netRequest = dec2bin(parseInt(conv.hexToDec(dataBufIn.slice(3,4).toString('hex'))))
+						const powerError = dec2bin(parseInt(conv.hexToDec(dataBufIn.slice(6,7).toString('hex'))))
+						const generalError = '000';
 						
-						switch(msgIdIn){
-							
-							//Extracting L2 Data
-							case '0':
-								L2charger.volt = parseInt(conv.hexToDec((totalBufIn.slice(10,12).swap16()).toString('hex'))/10);//!Cautious! by doing that you swap 10 12 poitins in totalBufIn itself
-								L2charger.curr = parseInt(conv.hexToDec((totalBufIn.slice(12,14).swap16()).toString('hex'))/10);
-								L2charger.powr = parseInt(conv.hexToDec((totalBufIn.slice(14,16).swap16()).toString('hex'))/1000);
+						switch(charger){
+							case 'C': //L2 Charger
+								L2charger.state = state
+								L2charger.activityState = activityState
+								L2charger.netRequest = netRequest
+								L2charger.powerError = powerError
+								L2charger.generalError = generalError
+								
+								switch(msgIdIn){
+									
+									//Extracting L2 Data
+									case '0':
+										L2charger.volt = parseInt(conv.hexToDec((totalBufIn.slice(10,12).swap16()).toString('hex'))/10);//!Cautious! by doing that you swap 10 12 poitins in totalBufIn itself
+										L2charger.curr = parseInt(conv.hexToDec((totalBufIn.slice(12,14).swap16()).toString('hex'))/10);
+										L2charger.powr = parseInt(conv.hexToDec((totalBufIn.slice(14,16).swap16()).toString('hex'))/1000);
+										break;
+									case '1':
+										L2charger.kwh = conv.hexToDec(totalBufIn.slice(10,12).swap16().toString('hex'));
+										L2charger.t1 = conv.hexToDec(totalBufIn[12].toString(16));
+										L2charger.t2 = conv.hexToDec(totalBufIn[13].toString(16));
+										L2charger.t3 = conv.hexToDec(totalBufIn[14].toString(16));
+										break;
+								}
 								break;
-							case '1':
-								L2charger.kwh = conv.hexToDec(totalBufIn.slice(10,12).swap16().toString('hex'));
-								L2charger.t1 = conv.hexToDec(totalBufIn[12].toString(16));
-								L2charger.t2 = conv.hexToDec(totalBufIn[13].toString(16));
-								L2charger.t3 = conv.hexToDec(totalBufIn[14].toString(16));
+							case 'c': //Fast Charger
+								Fcharger.state = state
+								Fcharger.activityState = activityState
+								Fcharger.netRequest = netRequest
+								Fcharger.powerError = powerError
+								Fcharger.generalError = generalError
+								
+								
+								switch(msgIdIn){
+									case '0':
+										Fcharger.volt = conv.hexToDec((totalBufIn.slice(10,12).swap16()).toString('hex'));//!Cautious! by doing that you swap 10 12 poitins in totalBufIn itself
+										Fcharger.curr = conv.hexToDec((totalBufIn.slice(12,14).swap16()).toString('hex'));
+										Fcharger.powr = conv.hexToDec((totalBufIn.slice(14,16).swap16()).toString('hex'));
+										break;
+									case '1':
+										Fcharger.kwh = conv.hexToDec(totalBufIn.slice(10,12).swap16().toString('hex'));
+										Fcharger.t1 = conv.hexToDec(totalBufIn[12].toString(16));
+										Fcharger.t2 = conv.hexToDec(totalBufIn[13].toString(16));
+										Fcharger.t3 = conv.hexToDec(totalBufIn[14].toString(16));
+										break;
+								}
 								break;
+								
 						}
-						break;
-					case 'c': //Fast Charger
-						Fcharger.state = state
-						Fcharger.activityState = activityState
-						Fcharger.netRequest = netRequest
-						Fcharger.powerError = powerError
-						Fcharger.generalError = generalError
 						
-						switch(msgIdIn){
-							case '0':
-								Fcharger.volt = conv.hexToDec((totalBufIn.slice(10,12).swap16()).toString('hex'));//!Cautious! by doing that you swap 10 12 poitins in totalBufIn itself
-								Fcharger.curr = conv.hexToDec((totalBufIn.slice(12,14).swap16()).toString('hex'));
-								Fcharger.powr = conv.hexToDec((totalBufIn.slice(14,16).swap16()).toString('hex'));
-								break;
-							case '1':
-								Fcharger.kwh = conv.hexToDec(totalBufIn.slice(10,12).swap16().toString('hex'));
-								Fcharger.t1 = conv.hexToDec(totalBufIn[12].toString(16));
-								Fcharger.t2 = conv.hexToDec(totalBufIn[13].toString(16));
-								Fcharger.t3 = conv.hexToDec(totalBufIn[14].toString(16));
-								break;
-						}
-						break;
 						
+					}
+					else{
+						console.log("CRC FAIL"); 
+						console.log('\x1b[0m')
+					}
 				}
-				
-				
-			}
-			else{
-				console.log("CRC FAIL"); 
-				console.log('\x1b[0m')
-			}
+				break;
+			default:
+				break;
 		}
-		
 		
 		
 		

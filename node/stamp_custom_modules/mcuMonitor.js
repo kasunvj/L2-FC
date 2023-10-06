@@ -1,4 +1,4 @@
-const objmcu = require("./mcuMsgHandle5");
+const objmcu = require("./mcuMsgHandle6");
 const objnet = require("./networkCheck");
 var ping = 0;
  
@@ -27,7 +27,7 @@ function monitor(charger,netSt){
 			var err = objmcu.L2charger.getpowerError();
 			var genErr = objmcu.L2charger.getGeneralError();
 			
-			console.log()
+			
 	console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"[L2 CHARGER]--------------- \x1b[0m")
 			if (state == 0)
 				stateName = 'POWER ON'
@@ -131,10 +131,10 @@ function monitor(charger,netSt){
 			var err = objmcu.Fcharger.getpowerError();
 			var genErr = objmcu.Fcharger.getGeneralError();
 			
-			console.log(err)
 			
-			console.log()
-			console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"[FAST CHARGER]------------- \x1b[0m")
+			
+			
+			console.log('\x1b[33m'+year+"-"+month+"-"+date+" "+hours+":"+minutes+":"+seconds+"[FAST CHARGERsdcdscdsc]------------- \x1b[0m")
 			if (state == 0)
 				stateName = 'POWER ON'
 			else if (state == 1)
@@ -181,7 +181,7 @@ function monitor(charger,netSt){
 			console.log("  CpPWM active   :",activityState[1])
 			console.log("  Charging active:",activityState[2])
 			
-			console.log("\x1b[32mL2 Network  Request :\x1b[0m")
+			console.log("\x1b[32mFC Network  Request :\x1b[0m")
 			if(netRequest[1]=='1')
 				console.log("\x1b[96m  Update Alarm Complete \x1b[0m")
 			if(netRequest[2]=='1')
@@ -197,7 +197,7 @@ function monitor(charger,netSt){
 			if(netRequest[7]=='1')
 				console.log("\x1b[96m  Start \x1b[0m")
 			
-			console.log("\x1b[32mL2 Error States   :\x1b[0m")
+			console.log("\x1b[32mFC Error States   :\x1b[0m")
 			if(err[0]=='1')
 				console.log("\x1b[91m  Ground Fault\x1b[0m")
 			if(err[1]=='1')
@@ -215,7 +215,7 @@ function monitor(charger,netSt){
 			if(err[7]=='1')
 				console.log("\x1b[91m  Over Voltage Error\x1b[0m")
 			
-			console.log("\x1b[32mL2 General Error   :\x1b[0m")
+			console.log("\x1b[32mFC General Error   :\x1b[0m")
 			if(genErr[0] == '1')
 				console.log("\x1b[91m L2 is not communicating via serial1 bus\x1b[0m")
 			if(genErr[1] == '1')

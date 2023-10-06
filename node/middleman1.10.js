@@ -13,7 +13,7 @@ const {ReadlineParser} = require('@serialport/parser-readline');
 const {exec}=require("child_process");
 const {execSync} = require('child_process');
 var EventEmitter = require('events');
-var obj = require("./stamp_custom_modules/mcuMsgHandle5");
+var obj = require("./stamp_custom_modules/mcuMsgHandle6");
 var objTap = require("./stamp_custom_modules/tapcardGet");
 var objNet = require("./stamp_custom_modules/networkCheck");
 var objDMG = require("./stamp_custom_modules/controlDMG");
@@ -107,12 +107,12 @@ for (var i=0;i<2;i++){
 	}
 }
 
-
 const portL2 = new SerialPort({path:L2.getPath(),baudRate:L2.getBaud()});
-const parserFixLenL2 = portL2.pipe(new ByteLengthParser({ length: 20 }));
+const parserFixLenL2 = portL2.pipe(new ByteLengthParser({ length: 1 }));
 
 const portFC = new SerialPort({path:FC.getPath(),baudRate:FC.getBaud()});
-const parserFixLenFC = portFC.pipe(new ByteLengthParser({ length: 20 }));
+const parserFixLenFC = portFC.pipe(new ByteLengthParser({ length: 1 }));
+
 
 const portACM0 = new SerialPort({ path: '/dev/ttyACM0', baudRate: 9600});
 const parserReadLn = portACM0.pipe(new ReadlineParser({ delimiter: '\r\n'}));
@@ -156,6 +156,7 @@ let pipeIDFast;
 var isSent = 0;
 var isAllSent = 0;
 var f = 80;
+
 
 
 /*Charger Data - Not Live*/
@@ -203,6 +204,7 @@ class LiveDataLEFT{
 		this.voltLive = voltLive;
 		this.wattLive = wattLive;
 		this.ecode = ecode;
+		
 	}
 	getPage(){ return this.page;}
 	getIcon(){ return this.icon;}
@@ -247,6 +249,12 @@ class LiveDataRIGHT{
 
 }
 
+class CommonSig{
+	constructor(emg){
+		this.emg = emg
+	}
+}
+
 function delay(time) {
   return new Promise(resolve => setTimeout(resolve, time));
 } 
@@ -267,14 +275,14 @@ function listenTapCard(){
 function readMCUL2(){
 	console.log('opened L2');
 	parserFixLenL2.on('data', function(data){
-		console.log('\x1b[96m')
-		if(obj.mcuMsgDecode(data) == 0){			
+		//console.log('\x1b[96m')
+		if(obj.mcuMsgDecode(obj.countPacketL2,data) == 0){			
 			L2dataEmitter.emit('data',obj.mcuDataM0,obj.mcuDataM1,obj.mcuStateL2)
 			//nothing to be  done, calling mcuMsgDecode also save latest values
 			//and update values that uses for DMG Display
 			//updateDisplayDMG(liveDMGLeft,liveDMGLeft);
 		}
-		console.log('\x1b[0m')
+		//console.log('\x1b[0m')
 		
 		
 	});
@@ -283,14 +291,31 @@ function readMCUL2(){
 function readMCUFC(){
 	console.log('opened FC');
 	parserFixLenFC.on('data', function(data){
-		console.log('\x1b[95m')
-		if(obj.mcuMsgDecode(data) == 0){ 
+		//console.log('\x1b[95m')
+		if(obj.mcuMsgDecode(obj.countPacketFC,data) == 0){ 
+			if(obj.Fcharger.getpowerError()[4] == '1'){
+				console.log("Emergency !!!!")
+				commonSig.emg = 1;
+				
+				pageEE.emit('E');
+			}
+			
+			if(commonSig.emg){
+				if(obj.Fcharger.getpowerError()[4] == '0'){
+					commonSig.emg = 0;
+					
+					pageEE.emit('L2', 0, saveLastNetDataL, saveLastNetDataR)
+					pageEE.emit('FC', 0, saveLastNetDataL, saveLastNetDataR)
+				}
+			}
+			
+			//middleman.pageEE.emit('L2',0,dataL,dataR)
 			//L2dataEmitter.emit('data',obj.mcuDataM0,obj.mcuDataM1,obj.mcuStateL2)
 			//nothing to be  done, calling mcuMsgDecode also save latest values
 			//and update values that uses for DMG Display
 			//updateDisplayDMG(liveDMGLeft,liveDMGLeft);
 		}
-		console.log('\x1b[0m')
+		//console.log('\x1b[0m')
 		
 	});
 }
@@ -331,6 +356,8 @@ class L2Ops{
 		this.page = newPage
 		return pageUpdateDMG('L', this.page , NetDataL, NetDataR)
 	}
+	
+	
 }
 
 class FCOps{
@@ -903,6 +930,15 @@ function changeDMGPage(panel,stateNo,port){
 			}
 			
 			break;
+		case 'E':
+			switch(stateNo){
+				case 10:
+					page = 39;
+					dmgTurnOffAllIcons('L',port)
+					dmgTurnOffAllIcons('R',port)
+					break;
+			}
+			
 			
 		default:
 			//console.log("Side selection wrong. side | state "+panel+" | "+stateNo);
@@ -1070,10 +1106,6 @@ function changeDMGData(panel,page,data,port){
 					return isSent;
 					
 					break;
-				
-				
-				
-				
 					
 				default:
 					//console.log("Left Side : L2 has No such state to update data")
@@ -1294,7 +1326,6 @@ function changeDMGData(panel,page,data,port){
 					//dmgDataBuf = Buffer.from([0x00,0x00,0x00,0x00])
 					break;		
 			}
-			break;
 		
 		
 	}
@@ -1536,23 +1567,10 @@ function dmgTurnOffAllIcons(mySide,myPort){
 }
 
 function pageUpdateDMG(newSide,newPage,netDataL,netDataR){
-	/*L2 data collect and analize for DMG Display
-	MODE 0
-		mcuData0[0] : Volatage
-		mcuData0[1] : Current
-		mcuData0[2] : Power
-		mcuData0[3] : 0
 	
-	MODE 1
-		mcuData1[0] : KWh
-		mcuData1[1] : t1
-		mcuData1[2] : t2
-		mcuData1[3] : t3
-	*/
 	isAllSent = 0;
 	//var liveLeftDataMid0 = readMCUData('msgId0');
 	//var liveLeftDataMid1 = readMCUData('msgId1');
-	
 	
 	liveDMGLeft.voltLive = parseInt(obj.L2charger.volt);
 	liveDMGLeft.currLive = parseInt(obj.L2charger.curr);
@@ -1575,15 +1593,16 @@ function pageUpdateDMG(newSide,newPage,netDataL,netDataR){
 			/*If tehre is an icon to keep from the previous state pass the state saved in icon attribute*/
 			console.log("--R icon:",liveDMGRight.getIcon())
 			if(liveDMGRight.getIcon() == 0){
+				console.log("R side no icon, but refreshing ")
 				changeDMGPage('R',liveDMGRight.page,DISP.port);
 				changeDMGData('R',liveDMGRight.page,netDataR,DISP.port);
-				console.log("--L No iocons to on")
+				console.log("--R No iocons to on")
 				}
 			else{
-				console.log("R changinf for icon")
+				console.log("R chaning for icon")
 				changeDMGPage('R',liveDMGRight.icon,DISP.port);
 				changeDMGData('R',liveDMGRight.icon,netDataR,DISP.port);
-				console.log("--L icons on")
+				console.log("--R icons on")
 			}
 			
 			resolve();
@@ -1596,21 +1615,47 @@ function pageUpdateDMG(newSide,newPage,netDataL,netDataR){
 			/*If tehre is an icon to keep from the previous state pass the state saved in icon attribute*/
 			console.log("--L icon:",liveDMGLeft.getIcon())
 			if(liveDMGLeft.getIcon() == 0){
+				console.log("L side no icon, but refreshing ")
 				changeDMGPage('L',liveDMGLeft.page,DISP.port);
 				changeDMGData('L',liveDMGLeft.page,netDataL,DISP.port);
-				console.log("--R No iocons to on")
+				console.log("--L No iocons to on")
 			}
 			else{
 				console.log("L changinf for icon")
 				changeDMGPage('L',liveDMGLeft.icon,DISP.port);
 				changeDMGData('L',liveDMGLeft.icon,netDataL,DISP.port);
-				console.log("--R icons on")
+				console.log("--L icons on")
 			}
 			
 			
 			
 			resolve();
 		}
+		
+		/*
+		else if (newSide == 'E'){
+			// console.log("DMG side L: "+(liveDMGLeft.page).toString()+" "+(liveDMGLeft.icon).toString()+" * | DMG side R: "+ newPage.toString()+" "+(liveDMGRight.icon).toString())
+			changeDMGPage('E',newPage,DISP.port);
+			console.log("--E page and data changed")
+			//If tehre is an icon to keep from the previous state pass the state saved in icon attribute
+			console.log("--E icon:",liveDMGLeft.getIcon())
+			if(liveDMGLeft.getIcon() == 0){
+				console.log("E side no icon, but refreshing ")
+				changeDMGPage('E',liveDMGLeft.page,DISP.port);
+				console.log("--E No iocons to on")
+			}
+			else{
+				console.log("E changinf for icon")
+				changeDMGPage('E',liveDMGLeft.icon,DISP.port);
+				console.log("--E icons on")
+			}
+			
+			
+			
+			resolve();
+		}*/
+		
+		
 		console.log("************************** All msg sent to display")
 	}).catch((err)=>{ 
 	console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -1653,6 +1698,8 @@ ecode
 var liveDMGLeft =  new LiveDataLEFT(0,0,44,44.40,14.50,44,44,44,44,1);//L2 does not have batt but it shows as 0 here %
 var liveDMGRight = new LiveDataRIGHT(0,0,55,0,55.50,15.50,55,55,55,55,1);
 
+let saveLastNetDataL;
+let saveLastNetDataR;
 
 
 /*GPIO*/
@@ -1683,6 +1730,8 @@ async function gpioCreate(){
 /*DGM Page Initialize*/
 var l2Control = new L2Ops(0)
 var fcControl = new FCOps(0)
+let commonSig = new CommonSig(0)
+
 let dmgLeftID;
 let dmgRightID;
 let gpioID
@@ -1721,6 +1770,8 @@ gpioEE.on('all-off',() =>{
 
 pageEE.on('L2', async function(newLeft,dL,dR) {
 	l2Control.page= newLeft;
+	saveLastNetDataL = dL;
+	saveLastNetDataR = dR; 
 	
 	/*add pages that require refresh constantly */	
 	if(l2Control.page == 4){
@@ -1744,6 +1795,8 @@ pageEE.on('L2', async function(newLeft,dL,dR) {
 pageEE.on('FC', async function(newRight,dL,dR) {
 	
 	fcControl.page = newRight;
+	saveLastNetDataL = dL;
+	saveLastNetDataR = dR; 
 
     /*add pages that require refresh constantly*/	
 	if(fcControl.page == 5){
@@ -1761,6 +1814,15 @@ pageEE.on('FC', async function(newRight,dL,dR) {
 	}
 	
 })
+
+
+pageEE.on('E',async function(){
+	clearInterval(dmgLeftID);
+	clearInterval(dmgRightID);
+	writeMCUData('M','IDLE',0,saveLastNetDataL.getErrorL2());
+	let completeLscreen = await changeDMGPage('E',10,DISP.port)
+})
+
 
 
 
@@ -1853,7 +1915,7 @@ let testID = setInterval(()=>{
 	*/
 },500);
 
-module.exports = {readMCUData,writeMCUData,pageUpdateDMG,newTap,gpio,mcuMonitor,l2Control,fcControl,pageEE,gpioEE,led1,led2,led3,led4}
+module.exports = {readMCUData,writeMCUData,pageUpdateDMG,newTap,gpio,mcuMonitor,l2Control,fcControl,pageEE,gpioEE,led1,led2,led3,led4,commonSig}
 
 
 
